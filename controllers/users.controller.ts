@@ -24,8 +24,30 @@ export const getUser = async( req: Request, res: Response ) =>{
     }
 }
 
-export const postUser = ( req: Request, res: Response ) =>{
+export const postUser = async( req: Request, res: Response ) =>{
     const { body } = req;
+
+    try{
+        const existEmail = await User.findOne({
+            where: {
+                email: body.email
+            }
+        });
+        
+        if(existEmail){
+            return res.status(400).json({
+                msg: `Ya existe un usuario con el email: ${body.email}`
+            })
+        }
+        const user = User.build(body);
+        await user.save();
+
+        res.json(user);
+    }catch (error:any){
+        res.status(500).json({
+            msg: 'Hable con el administrador'
+        })
+    }
 
     res.json({
         msg: 'postUser',
@@ -33,22 +55,42 @@ export const postUser = ( req: Request, res: Response ) =>{
     })
 }
 
-export const putUser = ( req: Request, res: Response ) =>{
+export const putUser = async( req: Request, res: Response ) =>{
     const { id } = req.params;
     const { body } = req;    
 
-    res.json({
-        msg: 'putUser',
-        id,
-        body
-    })
+    try{
+        const user = await User.findByPk( id );
+        if(!user){
+            return res.status(500).json({
+                msg: `No existe un usuario con el id ${id}`
+            })
+        }
+        //await user.destroy(); eliminacion fisica
+        await user.update( { state: false } );
+        res.json(user);
+    }catch (error:any){
+        res.status(500).json({
+            msg: 'Hable con el administrador'
+        })
+    }
 }
 
-export const deleteUser = ( req: Request, res: Response ) =>{
+export const deleteUser = async( req: Request, res: Response ) =>{
     const { id } = req.params;
 
-    res.json({
-        msg: 'deleteUser',
-        id
-    })
+    try{
+        const user = await User.findByPk( id );
+        if(!user){
+            return res.status(500).json({
+                msg: `No existe un usuario con el id ${id}`
+            })
+        }
+        await user.update( state );
+        res.json(user);
+    }catch (error:any){
+        res.status(500).json({
+            msg: 'Hable con el administrador'
+        })
+    }
 }
